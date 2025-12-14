@@ -66,4 +66,37 @@ def read_data_from_arduino():
                 print("Osiągnięto znacznik końca.")
                 break
 
-            if line
+            if line:
+                try:
+                    row = [int(val) for val in line.split('\t') if val.strip().isdigit()]
+
+                    if len(row) == COLS:
+                        data_matrix.append(row)
+                        rows_read += 1
+                        print(f"Odczytano wiersz {rows_read}/{ROWS}")
+
+                except ValueError as e:
+                    print(f"Błąd konwersji danych: {e}. Linia: '{line}'")
+
+        ser.close()
+        print(f"Odczyt zakończony. Zebrano {len(data_matrix)} wierszy.")
+
+    except serial.SerialException as e:
+        print(f"Błąd połączenia szeregowego: {e}")
+        print(
+            f"Upewnij się, że port '{PORT}' jest poprawny, Arduino jest podłączone i nie jest używane przez Monitor Szeregowy Arduino IDE.")
+        return None
+    except Exception as e:
+        print(f"Wystąpił nieoczekiwany błąd: {e}")
+        return None
+
+    return data_matrix
+
+
+if __name__ == '__main__':
+    sonar_data = read_data_from_arduino()
+
+    if sonar_data and len(sonar_data) == ROWS:
+        wizualizuj_odleglosci(sonar_data)
+    else:
+        print("Nie udało się pobrać pełnej macierzy danych do wizualizacji.")
